@@ -11,6 +11,12 @@
 	
 	<script src="lib/leaflet-0.7.3/leaflet.js"></script>
 	
+	<script src="lib/leaflet-0.7.3/esri-leaflet.js"></script>
+	
+	<script src="lib/leaflet-0.7.3/leaflet.active-layers.min.js"></script>
+	
+	<script src="lib/leaflet-0.7.3/leaflet.select-layers.min.js"></script>
+	
 	<link rel="stylesheet" href="lib/bootstrap-3.1.0/css/bootstrap.min.css">
 	
 	<link rel="stylesheet" href="lib/bootstrap-3.1.0/css/bootstrap-theme.min.css">
@@ -93,6 +99,18 @@
     transform: scale(1.0);
     -webkit-transform: scale(1.0);
 		}
+	.leaflet-control-layers-toggle:after{ 
+		content:"your text"; 
+		color:#000 ;
+	}
+	.leaflet-control-layers-toggle{ 
+		width:auto;
+		background-position:3px 50% ;
+		padding:3px;
+		padding-left:36px;
+		text-decoration:none;
+		line-height:36px;
+		}
 	}
 	</style>
 	<script>
@@ -156,15 +174,57 @@
 
 	<script>
 		
-		$(function(){
-			var map = L.map('map', {zoomControl: false});
-			var markerGroup= L.layerGroup ();
-			markerGroup.addTo(map);
-			var latlng = L.latLng(-3.328499,114.589203);
-			map.setView (latlng, 4, {animate: true});
-			var control = L.control.zoom({position: "bottomleft"}) 
-			control.addTo(map);
-			 
+	$(function(){
+
+        var attribution = '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>';
+        
+        var osm = L.tileLayer(
+                'https://data.blankon.id/api/tiles?s={s}&z={z}&x={x}&y={y}'
+                , {attribution: attribution}
+        )
+        var blackAndWhite = L.tileLayer(
+                'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png'
+                , {attribution: attribution}
+        )
+        
+		var nkri = L.esri.tiledMapLayer('https://data.blankon.id/api/wms', {
+			attribution: 'Peta NKRI - &copy Badan Informasi Geospasial', 
+		})
+        
+        var clouds = L.tileLayer('http://{s}.tile.openweathermap.org/map/clouds/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>'
+            , opacity: 0.5
+        })
+        var wind = L.tileLayer('http://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>'
+            , opacity: 0.5
+        })
+        var temperature = L.tileLayer('http://{s}.tile.openweathermap.org/map/temp/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>'
+            , opacity: 0.5
+        })
+
+        var map = L.map('map', {
+            center: new L.LatLng(-1.269160, 116.825264), zoomControl: false, zoom: 3, layers: [osm, clouds]
+        });
+
+        var baseMaps = {
+            "OpenStreetMap": osm, "Hitam dan Putih": blackAndWhite, "Peta NKRI": nkri
+        };
+
+        var overlayMaps = {
+            "Awan": clouds,
+            "Angin": wind,
+            "Suhu Udara": temperature
+        };
+        
+       var zoomControl = L.control.zoom({position: 'bottomleft'});
+                map.addControl(zoomControl);
+
+        var controlb = L.control.layers(baseMaps, overlayMaps, {position: "bottomright"})
+        //var controlb = L.control.selectLayers(baseMaps, overlayMaps)
+        controlb.addTo(map);
+
 			$("#search-button").click(function(e){
 				e.preventDefault();
 				$("#search-button") .prop( "disabled", true);
@@ -221,7 +281,6 @@
 						console.log(position)
 						var latlng = L.latLng(position.lat, position.lon);
 						map.setView (latlng, 16, {animate: true});
-						markerGroup.clearLayers();
 						var marker = L.popup({autoPan: true});
 						marker.setLatLng(latlng);
 						var content = data[0].display_name||"";
@@ -250,11 +309,12 @@
 				});
 			});
 		
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+		var tiles = L.tileLayer('https://data.blankon.id/api/tiles?s={s}&z={z}&x={x}&y={y}', {
 			zoom: 5,
 			maxZoom: 18,
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
 		}).addTo(map);
+		
 
 		function onLocationFound(e) {
 			var radius = e.accuracy / 2;
