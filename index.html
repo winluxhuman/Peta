@@ -280,7 +280,7 @@
 						var position= data[0];
 						console.log(position)
 						var latlng = L.latLng(position.lat, position.lon);
-						map.setView (latlng, 16, {animate: true});
+						map.setView (latlng, 14, {animate: true});
 						var marker = L.popup({autoPan: true});
 						marker.setLatLng(latlng);
 						var content = data[0].display_name||"";
